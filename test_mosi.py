@@ -37,7 +37,7 @@ def get_data(args,config):
 	val_split = 0.1514                      # fixed. 52 training 10 validation
 	use_pretrained_word_embedding = True    # fixed. use glove 300d
 	embedding_vecor_length = 300            # fixed. use glove 300d
-	# 115                   # fixed for MOSI. The max length of a segment in MOSI dataset is 114 
+	# 115                   # fixed for MOSI. The max length of a segment in MOSI dataset is 114
 	max_segment_len = config['seqlength']
 	end_to_end = True                       # fixed
 
@@ -157,13 +157,13 @@ class EFLSTM(nn.Module):
 		self.fc1 = nn.Linear(h, h)
 		self.fc2 = nn.Linear(h, output_dim)
 		self.dropout = nn.Dropout(dropout)
-		
+
 	def forward(self, x):
 		# x is t x n x d
 		t = x.shape[0]
 		n = x.shape[1]
-		self.hx = torch.zeros(n, self.h).cuda()
-		self.cx = torch.zeros(n, self.h).cuda()
+		self.hx = torch.zeros(n, self.h)
+		self.cx = torch.zeros(n, self.h)
 		all_hs = []
 		all_cs = []
 		for i in range(t):
@@ -223,7 +223,7 @@ class MFN(nn.Module):
 		self.out_fc1 = nn.Linear(final_out, h_out)
 		self.out_fc2 = nn.Linear(h_out, output_dim)
 		self.out_dropout = nn.Dropout(out_dropout)
-		
+
 	def forward(self,x):
 		x_l = x[:,:,:self.d_l]
 		x_a = x[:,:,self.d_l:self.d_l+self.d_a]
@@ -231,13 +231,13 @@ class MFN(nn.Module):
 		# x is t x n x d
 		n = x.shape[1]
 		t = x.shape[0]
-		self.h_l = torch.zeros(n, self.dh_l).cuda()
-		self.h_a = torch.zeros(n, self.dh_a).cuda()
-		self.h_v = torch.zeros(n, self.dh_v).cuda()
-		self.c_l = torch.zeros(n, self.dh_l).cuda()
-		self.c_a = torch.zeros(n, self.dh_a).cuda()
-		self.c_v = torch.zeros(n, self.dh_v).cuda()
-		self.mem = torch.zeros(n, self.mem_dim).cuda()
+		self.h_l = torch.zeros(n, self.dh_l)
+		self.h_a = torch.zeros(n, self.dh_a)
+		self.h_v = torch.zeros(n, self.dh_v)
+		self.c_l = torch.zeros(n, self.dh_l)
+		self.c_a = torch.zeros(n, self.dh_a)
+		self.c_v = torch.zeros(n, self.dh_v)
+		self.mem = torch.zeros(n, self.mem_dim)
 		all_h_ls = []
 		all_h_as = []
 		all_h_vs = []
@@ -302,7 +302,7 @@ def train_ef(X_train, y_train, X_valid, y_valid, X_test, y_test, config):
 	dropout = config["drop"]
 
 	model = EFLSTM(d,h,output_dim,dropout)
-	
+
 	optimizer = optim.Adam(model.parameters(),lr=config["lr"])
 	#optimizer = optim.SGD(model.parameters(),lr=config["lr"],momentum=config["momentum"])
 
@@ -326,8 +326,8 @@ def train_ef(X_train, y_train, X_valid, y_valid, X_test, y_test, config):
 			start = batch*batchsize
 			end = (batch+1)*batchsize
 			optimizer.zero_grad()
-			batch_X = torch.Tensor(X_train[:,start:end]).cuda()
-			batch_y = torch.Tensor(y_train[start:end]).cuda()
+			batch_X = torch.Tensor(X_train[:,start:end])
+			batch_y = torch.Tensor(y_train[start:end])
 			predictions = model.forward(batch_X).squeeze(1)
 			loss = criterion(predictions, batch_y)
 			loss.backward()
@@ -339,8 +339,8 @@ def train_ef(X_train, y_train, X_valid, y_valid, X_test, y_test, config):
 		epoch_loss = 0
 		model.eval()
 		with torch.no_grad():
-			batch_X = torch.Tensor(X_valid).cuda()
-			batch_y = torch.Tensor(y_valid).cuda()
+			batch_X = torch.Tensor(X_valid)
+			batch_y = torch.Tensor(y_valid)
 			predictions = model.forward(batch_X).squeeze(1)
 			epoch_loss = criterion(predictions, batch_y).item()
 		return epoch_loss
@@ -349,7 +349,7 @@ def train_ef(X_train, y_train, X_valid, y_valid, X_test, y_test, config):
 		epoch_loss = 0
 		model.eval()
 		with torch.no_grad():
-			batch_X = torch.Tensor(X_test).cuda()
+			batch_X = torch.Tensor(X_test)
 			predictions = model.forward(batch_X).squeeze(1)
 			predictions = predictions.cpu().data.numpy()
 		return predictions
@@ -440,8 +440,8 @@ def train_mfn(X_train, y_train, X_valid, y_valid, X_test, y_test, configs):
 			start = batch*batchsize
 			end = (batch+1)*batchsize
 			optimizer.zero_grad()
-			batch_X = torch.Tensor(X_train[:,start:end]).cuda()
-			batch_y = torch.Tensor(y_train[start:end]).cuda()
+			batch_X = torch.Tensor(X_train[:,start:end])
+			batch_y = torch.Tensor(y_train[start:end])
 			predictions = model.forward(batch_X).squeeze(1)
 			loss = criterion(predictions, batch_y)
 			loss.backward()
@@ -453,8 +453,8 @@ def train_mfn(X_train, y_train, X_valid, y_valid, X_test, y_test, configs):
 		epoch_loss = 0
 		model.eval()
 		with torch.no_grad():
-			batch_X = torch.Tensor(X_valid).cuda()
-			batch_y = torch.Tensor(y_valid).cuda()
+			batch_X = torch.Tensor(X_valid)
+			batch_y = torch.Tensor(y_valid)
 			predictions = model.forward(batch_X).squeeze(1)
 			epoch_loss = criterion(predictions, batch_y).item()
 		return epoch_loss
@@ -463,7 +463,7 @@ def train_mfn(X_train, y_train, X_valid, y_valid, X_test, y_test, configs):
 		epoch_loss = 0
 		model.eval()
 		with torch.no_grad():
-			batch_X = torch.Tensor(X_test).cuda()
+			batch_X = torch.Tensor(X_test)
 			predictions = model.forward(batch_X).squeeze(1)
 			predictions = predictions.cpu().data.numpy()
 		return predictions
@@ -509,16 +509,22 @@ def test(X_test, y_test, metric):
 		epoch_loss = 0
 		model.eval()
 		with torch.no_grad():
-			batch_X = torch.Tensor(X_test).cuda()
+			batch_X = torch.Tensor(X_test)
 			predictions = model.forward(batch_X).squeeze(1)
 			predictions = predictions.cpu().data.numpy()
 		return predictions
+
+	if torch.cuda.is_available():
+	    map_location=lambda storage, loc: storage
+	else:
+	    map_location='cpu'
+
 	if metric == 'mae':
-		model = torch.load('best/mfn_mae.pt')
+		model = torch.load('best/mfn_mae.pt', map_location=map_location)
 	if metric == 'acc':
-		model = torch.load('best/mfn_acc.pt')
-	model = model.cpu().cuda()
-	
+		model = torch.load('best/mfn_acc.pt', map_location=map_location)
+	model = model.cpu()
+
 	predictions = predict(model, X_test)
 	print predictions.shape
 	print y_test.shape
@@ -563,7 +569,7 @@ X_train, y_train, X_valid, y_valid, X_test, y_test = load_saved_data()
 
 test(X_test, y_test, 'mae')
 test(X_test, y_test, 'acc')
-assert False
+# assert False
 
 #config = dict()
 #config["batchsize"] = 32
@@ -575,16 +581,16 @@ assert False
 #assert False
 
 while True:
-	# mae 0.993 [{'input_dims': [300, 5, 20], 'batchsize': 128, 'memsize': 128, 
-	#'windowsize': 2, 'lr': 0.01, 'num_epochs': 100, 'h_dims': [88, 48, 16], 'momentum': 0.9}, 
-	#{'shapes': 128, 'drop': 0.0}, {'shapes': 64, 'drop': 0.2}, 
-	#{'shapes': 256, 'drop': 0.0}, {'shapes': 64, 'drop': 0.2}, 
+	# mae 0.993 [{'input_dims': [300, 5, 20], 'batchsize': 128, 'memsize': 128,
+	#'windowsize': 2, 'lr': 0.01, 'num_epochs': 100, 'h_dims': [88, 48, 16], 'momentum': 0.9},
+	#{'shapes': 128, 'drop': 0.0}, {'shapes': 64, 'drop': 0.2},
+	#{'shapes': 256, 'drop': 0.0}, {'shapes': 64, 'drop': 0.2},
 	#{'shapes': 64, 'drop': 0.5}]
 
-	# acc 77.0 [{'input_dims': [300, 5, 20], 'batchsize': 128, 'memsize': 400, 
-	#'windowsize': 2, 'lr': 0.005, 'num_epochs': 100, 'h_dims': [64, 8, 80], 'momentum': 0.9}, 
-	#{'shapes': 128, 'drop': 0.5}, {'shapes': 128, 'drop': 0.2}, 
-	#{'shapes': 128, 'drop': 0.5}, {'shapes': 128, 'drop': 0.5}, 
+	# acc 77.0 [{'input_dims': [300, 5, 20], 'batchsize': 128, 'memsize': 400,
+	#'windowsize': 2, 'lr': 0.005, 'num_epochs': 100, 'h_dims': [64, 8, 80], 'momentum': 0.9},
+	#{'shapes': 128, 'drop': 0.5}, {'shapes': 128, 'drop': 0.2},
+	#{'shapes': 128, 'drop': 0.5}, {'shapes': 128, 'drop': 0.5},
 	#{'shapes': 256, 'drop': 0.5}]
 
 	config = dict()
@@ -617,5 +623,3 @@ while True:
 	configs = [config,NN1Config,NN2Config,gamma1Config,gamma2Config,outConfig]
 	print configs
 	train_mfn(X_train, y_train, X_valid, y_valid, X_test, y_test, configs)
-
-
