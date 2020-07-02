@@ -569,7 +569,7 @@ X_train, y_train, X_valid, y_valid, X_test, y_test = load_saved_data()
 
 test(X_test, y_test, 'mae')
 test(X_test, y_test, 'acc')
-# assert False
+assert False
 
 #config = dict()
 #config["batchsize"] = 32
